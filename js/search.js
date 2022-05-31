@@ -154,7 +154,7 @@ async function getAllPokemonByType(type) {
     }
 
     const pokemonType = await res.json();
-    const pokemon = [];
+    let pokemon = [];
 
     for(let i = 0; i < pokemonType.pokemon.length; i++) {
       const pokePromise = getPokemonByName(pokemonType.pokemon[i].pokemon.name);
