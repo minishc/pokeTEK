@@ -52,7 +52,8 @@ function validateForm(event){
         // update the DOM with an error message
         elements.formMessageElement.innerText = validationText;
     } else {
-        prompt("Form data looks OK");
+        elements.formMessageElement.innerText = "";
+        alert("Form data looks OK");
     }
 }
 
