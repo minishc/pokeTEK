@@ -61,6 +61,18 @@ async function searchForPokemon(event){
       }
     })
   }
+
+  else if(option === "move") {
+    const pokemonPromise = getAllPokemonByMove(`${searchVal}`);
+    pokemonPromise.then((pokemon) => {
+      console.log("All Pokemon with move found: " + pokemon);
+      domElements.loading.style.opacity = '0'; 
+
+      if(pokemon == null) {
+        createNotFound();
+      }
+    })
+  }
 }
 
 // GENERATE POKEMON LIST ITEM AND ADD IT TO THE DOM
@@ -172,6 +184,36 @@ async function getAllPokemonByType(type) {
 
 }
 
+async function getAllPokemonByMove(move) {
+  try {
+    const res = await fetchWithTimeout(`${URL}/move/${move}`, {timeout: 5000})
+        .catch(e => {
+          console.log(e);
+          return null;
+        });
+
+    if(res.status != 200) {
+      console.log("status from api call: " + res.status);
+      return null;
+    }
+
+    const pokemonMove = await res.json();
+    const pokemon = [];
+
+    for(let i = 0; i < pokemonMove.learned_by_pokemon.length; i++) {
+      console.log(pokemonMove.learned_by_pokemon[i].name);
+      const pokePromise = getPokemonByName(pokemonMove.learned_by_pokemon[i].name);
+      pokePromise.then((pokePromRes) => {
+        pokemon.push(pokePromRes);
+        createPokemonCard(pokePromRes);
+      });
+    }
+    return pokemon;
+  } catch(error) {
+    domElements.loading.style.opacity = '0';
+  }
+}
+
 async function fetchWithTimeout(resource, options = {}) {
   const { timeout = 8000 } = options;
 
@@ -184,5 +226,3 @@ async function fetchWithTimeout(resource, options = {}) {
   clearTimeout(id);
   return response;
 }
-
-
