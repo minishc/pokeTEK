@@ -3,33 +3,44 @@ console.log("search.js loaded");
 
 const URL = "https://pokeapi.co/api/v2";
 
+window.onload = init;
+
 // DOM ELEMENTS
-const searchButton = document.getElementById("poke-search-button");
-const pokeGridContainer = document.getElementById("poke-grid-container");
-const inputField = document.getElementById("pokesearch-input");
-const selectField = document.getElementById("pokefilter");
-const loading = document.getElementById("loading-icon-container");
+const domElements = {
+  collectDOM: function (){
+    this.searchButton = document.getElementById("poke-search-button");
+    this.pokeGridContainer = document.getElementById("poke-grid-container");
+    this.inputField = document.getElementById("pokesearch-input");
+    this.selectField = document.getElementById("pokefilter");
+    this.loading = document.getElementById("loading-icon-container");
+  }
+}
+
 
 // CHECK FOR FILTER AND SEARCH FOR POKEMON
 // searchButton.onclick = searchForPokemon;  // via handler
-searchButton.addEventListener('click', searchForPokemon);
+function init(){
+  domElements.collectDOM();
+  domElements.searchButton.addEventListener('click', searchForPokemon);
+}
+
 
 async function searchForPokemon(event){
   console.log("Clicked target ID: " + event.target.id);
-  const searchVal = inputField.value.toLowerCase();
+  const searchVal = domElements.inputField.value.toLowerCase();
   console.log("Serach value: " + searchVal);
   // add loading to dom
-  loading.style.opacity = "1";
-  pokeGridContainer.innerHTML = "";
+  domElements.loading.style.opacity = "1";
+  domElements.pokeGridContainer.innerHTML = "";
   // get search type
-  let option = selectField.value;
+  let option = domElements.selectField.value;
   // let pokemon = [];
   if (option === "name") {
     // create a promise object
     const pokemonNamePromise = getPokemonByName(`${searchVal}`);
     // when promise is fulfilled, execute callback function
     pokemonNamePromise.then( (pokemon) => {
-      loading.style.opacity = '0';
+      domElements.loading.style.opacity = '0';
       if (pokemon != null) {
         console.log("Pokemon found: " + pokemon);
         createPokemonCard(pokemon);
@@ -43,9 +54,21 @@ async function searchForPokemon(event){
     const pokemonPromise = getAllPokemonByType(`${searchVal}`);
     pokemonPromise.then((pokemon) => {
       console.log("All Pokemon for type found: " + pokemon);
-      loading.style.opacity = '0';
+      domElements.loading.style.opacity = '0';
 
       if (pokemon == null){
+        createNotFound();
+      }
+    })
+  }
+
+  else if(option === "move") {
+    const pokemonPromise = getAllPokemonByMove(`${searchVal}`);
+    pokemonPromise.then((pokemon) => {
+      console.log("All Pokemon with move found: " + pokemon);
+      domElements.loading.style.opacity = '0'; 
+
+      if(pokemon == null) {
         createNotFound();
       }
     })
@@ -73,7 +96,7 @@ function createPokemonCard(pokemon) {
 
   // Append card to the grid container
   pokeListItem.innerHTML = pokeInnerHTML;
-  pokeGridContainer.appendChild(pokeListItem);
+  domElements.pokeGridContainer.appendChild(pokeListItem);
 }
 
 function createNotFound(){
@@ -93,7 +116,7 @@ function createNotFound(){
   `;
 
   errListItem.innerHTML = pokeInnerHTML;
-  pokeGridContainer.appendChild(errListItem);
+  domElements.pokeGridContainer.appendChild(errListItem);
 }
 
 // API CALLS ----------------
@@ -102,7 +125,7 @@ function createNotFound(){
 async function getPokemonByName(name) {
   try{
     //
-    const responsePromise = await fetchWithTimeout((`${URL}/pokemon/${name}`), {timeout: 2000})
+    const responsePromise = await fetchWithTimeout((`${URL}/pokemon/${name}`), {timeout: 5000})
         .catch(e => {
           console.log(e);
         });
@@ -110,7 +133,7 @@ async function getPokemonByName(name) {
     if (responsePromise.status != 200){
 
       // stop loading screen
-      loading.style.opacity = '0';
+      domElements.loading.style.opacity = '0';
       console.log("status from api call: " + responsePromise.status);
       // show lack of results from completed call in the dom
       return null;
@@ -130,7 +153,7 @@ async function getPokemonByName(name) {
 
 async function getAllPokemonByType(type) {
   try {
-    const res = await fetchWithTimeout(`${URL}/type/${type}`, {timeout: 3000})
+    const res = await fetchWithTimeout(`${URL}/type/${type}`, {timeout: 5000})
         .catch(e => {
           console.log(e);
           // createNotFound();
@@ -143,7 +166,7 @@ async function getAllPokemonByType(type) {
     }
 
     const pokemonType = await res.json();
-    const pokemon = [];
+    let pokemon = [];
 
     for(let i = 0; i < pokemonType.pokemon.length; i++) {
       const pokePromise = getPokemonByName(pokemonType.pokemon[i].pokemon.name);
@@ -156,9 +179,39 @@ async function getAllPokemonByType(type) {
     }
     return pokemon;
   } catch (error) {
-    loading.style.opacity = '0';
+    domElements.loading.style.opacity = '0';
   }
 
+}
+
+async function getAllPokemonByMove(move) {
+  try {
+    const res = await fetchWithTimeout(`${URL}/move/${move}`, {timeout: 5000})
+        .catch(e => {
+          console.log(e);
+          return null;
+        });
+
+    if(res.status != 200) {
+      console.log("status from api call: " + res.status);
+      return null;
+    }
+
+    const pokemonMove = await res.json();
+    const pokemon = [];
+
+    for(let i = 0; i < pokemonMove.learned_by_pokemon.length; i++) {
+      console.log(pokemonMove.learned_by_pokemon[i].name);
+      const pokePromise = getPokemonByName(pokemonMove.learned_by_pokemon[i].name);
+      pokePromise.then((pokePromRes) => {
+        pokemon.push(pokePromRes);
+        createPokemonCard(pokePromRes);
+      });
+    }
+    return pokemon;
+  } catch(error) {
+    domElements.loading.style.opacity = '0';
+  }
 }
 
 async function fetchWithTimeout(resource, options = {}) {
@@ -173,5 +226,3 @@ async function fetchWithTimeout(resource, options = {}) {
   clearTimeout(id);
   return response;
 }
-
-
