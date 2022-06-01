@@ -105,8 +105,8 @@ function createPokemonCard(pokemon) {
         <h2>${pokeName}</h2>
         <p>type: ${pokeTypes}</p>
         <p>PokeDex #: ${pokeNum}</p>
+        <div class="img-container"><img src="${pokeImg}"></div>
     </a>
-  <div class="img-container"><img src="${pokeImg}"></div>
   `;
 
   // Append card to the grid container
