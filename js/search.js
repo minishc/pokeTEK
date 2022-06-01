@@ -73,6 +73,18 @@ async function searchForPokemon(event){
       }
     })
   }
+
+  else if(option === "generation") {
+    const pokemonPromise = getAllPokemonByGeneration(`${searchVal}`);
+    pokemonPromise.then((pokemon) => {
+      console.log("All pokemon in generation found: " + pokemon);
+      domElements.loading.style.opacity = '0';
+
+      if(pokemon == null) {
+        createNotFound();
+      }
+    })
+  }
 }
 
 // GENERATE POKEMON LIST ITEM AND ADD IT TO THE DOM
@@ -84,18 +96,21 @@ function createPokemonCard(pokemon) {
   const pokeName = (pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1));
   const pokeImg = pokemon.sprites.front_default;
   const pokeTypes = pokemon.types.map(el => el.type.name);
+  const pokeNum = pokemon.id;
 
   // Build out the html for the item
   const pokeInnerHTML = `
     <div class="info-container">
         <h2>${pokeName}</h2>
         <p>type: ${pokeTypes}</p>
+        <p>PokeDex #: ${pokeNum}</p>
     </div>
   <div class="img-container"><img src="${pokeImg}"></div>
   `;
 
   // Append card to the grid container
   pokeListItem.innerHTML = pokeInnerHTML;
+  pokeListItem.style.order = pokemon.id;
   domElements.pokeGridContainer.appendChild(pokeListItem);
 }
 
@@ -211,6 +226,37 @@ async function getAllPokemonByMove(move) {
     return pokemon;
   } catch(error) {
     domElements.loading.style.opacity = '0';
+  }
+}
+
+async function getAllPokemonByGeneration(generation) {
+  try {
+    const res = await fetchWithTimeout(`${URL}/generation/${generation}`, {timeout: 5000})
+        .catch(e => {
+          console.log(e);
+          return null;
+        });
+
+    if(res.status != 200) {
+      console.log("status from api call: " + res.status);
+      return null;
+    }
+
+    const resGen = await res.json();
+    const pokemon = [];
+    
+    for(let i = 0; i < resGen.pokemon_species.length; i++) {
+      const pokePromise = getPokemonByName(resGen.pokemon_species[i].name);
+      pokePromise.then((pokePromise) => {
+        pokemon.push(pokePromise);
+        createPokemonCard(pokePromise);
+      });
+    }
+
+    return pokemon;
+
+  } catch(error) {
+    console.log(error);
   }
 }
 
