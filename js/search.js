@@ -96,8 +96,15 @@ function createPokemonCard(pokemon) {
   const pokeName = (pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1));
   const pokeImg = pokemon.sprites.front_default;
   const pokeTypes = pokemon.types.map(el => el.type.name);
-  const pokeNum = pokemon.id;
-  const bulbapedia = "https://bulbapedia.bulbagarden.net/wiki/"+pokeName+"_(Pokémon)";
+  let pokeNum = pokemon.id;
+  let bulbapedia = "https://bulbapedia.bulbagarden.net/wiki/"+pokeName+"_(Pokémon)";
+  if(pokeNum > 10000) {
+    let hyphen = pokeName.indexOf('-');
+    let URL = pokemon.species.url;
+    let num = URL.indexOf("species/") + 8;
+    pokeNum = parseInt(URL.substring(num, URL.length - 1));
+    bulbapedia = "https://bulbapedia.bulbagarden.net/wiki/"+pokeName.substring(0, hyphen)+"_(Pokémon)";
+  }
 
   // Build out the html for the item
   const pokeInnerHTML = `
@@ -111,7 +118,7 @@ function createPokemonCard(pokemon) {
 
   // Append card to the grid container
   pokeListItem.innerHTML = pokeInnerHTML;
-  pokeListItem.style.order = pokemon.id;
+  pokeListItem.style.order = pokeNum;
   domElements.pokeGridContainer.appendChild(pokeListItem);
 }
 
