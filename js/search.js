@@ -97,14 +97,15 @@ function createPokemonCard(pokemon) {
   const pokeImg = pokemon.sprites.front_default;
   const pokeTypes = pokemon.types.map(el => el.type.name);
   const pokeNum = pokemon.id;
+  const bulbapedia = "https://bulbapedia.bulbagarden.net/wiki/"+pokeName+"_(Pokémon)";
 
   // Build out the html for the item
   const pokeInnerHTML = `
-    <div class="info-container">
+    <a class="info-container" href="${bulbapedia}" target="_blank">
         <h2>${pokeName}</h2>
         <p>type: ${pokeTypes}</p>
         <p>PokeDex #: ${pokeNum}</p>
-    </div>
+    </a>
   <div class="img-container"><img src="${pokeImg}"></div>
   `;
 
