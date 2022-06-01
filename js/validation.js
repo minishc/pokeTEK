@@ -15,10 +15,29 @@ const elements = {
 };
 
 function init(){
+    // initialize dom elements
     elements.collectDOM();
+    // attach listener to the form submit button
     elements.formElement.addEventListener("submit", validateForm);
+    // we can listen on every letter...
+    elements.passwordRepeatInp.addEventListener("keyup", onPasswordRepeatLetter);
 }
 
+function onPasswordRepeatLetter(event){
+    // console.log(event.currentTarget);
+    // check against other password
+    const passwordText = elements.passwordInp.value;
+    const passwordTextRpt = elements.passwordRepeatInp.value;
+    if(passwordText === passwordTextRpt) {
+        elements.formMessageElement.innerText = "";
+    }
+    else {
+        elements.formMessageElement.innerText = "Passwords do not match";
+    }
+    if(passwordText.length < 8) {
+        elements.formMessageElement.innerText += "\nPassword must be at least 8 characters";
+    }
+}
 
 function validateForm(event){
     event.preventDefault();
@@ -33,7 +52,8 @@ function validateForm(event){
         // update the DOM with an error message
         elements.formMessageElement.innerText = validationText;
     } else {
-        prompt("Form data looks OK");
+        elements.formMessageElement.innerText = "";
+        alert("Form data looks OK");
     }
 }
 
